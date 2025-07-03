@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Recomendações</title>
+</head>
+<body>
+    <h1>Recomendações de Filmes - {{ genero.title() }}</h1>
+
+    {% if filmes %}
+        <ul>
+            {% for filme in filmes %}
+                <li>{{ filme }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nenhum filme encontrado para o gênero informado.</p>
+    {% endif %}
+
+    <p><a href="/">Voltar ao início</a></p>
+</body>
+</html>

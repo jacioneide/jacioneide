@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Suas Preferências</title>
+</head>
+<body>
+    <h1>Preferências Salvas</h1>
+
+    {% if preferencias %}
+        <p><strong>Nome:</strong> {{ preferencias.nome }}</p>
+        <p><strong>Gênero favorito:</strong> {{ preferencias.genero.title() }}</p>
+        <p><strong>Notificações:</strong> {{ preferencias.notificacoes }}</p>
+        <p><a href="/recomendar?genero={{ preferencias.genero }}">Ver recomendações</a></p>
+    {% else %}
+        <p>Nenhuma preferência encontrada.</p>
+        <p><a href="/cadastro">Clique aqui para cadastrar</a></p>
+    {% endif %}
+</body>
+</html>

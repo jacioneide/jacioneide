@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro de Preferências</title>
+</head>
+<body>
+    <h1>Cadastro de Preferências</h1>
+    <form method="POST">
+        <label for="nome">Nome:</label>
+        <input type="text" name="nome" required><br><br>
+
+        <label for="genero">Gênero favorito:</label>
+        <select name="genero" required>
+            <option value="acao">Ação</option>
+            <option value="comedia">Comédia</option>
+            <option value="drama">Drama</option>
+            <option value="ficcao">Ficção</option>
+            <option value="terror">Terror</option>
+        </select><br><br>
+
+        <label>
+            <input type="checkbox" name="notificacoes"> Receber notificações por e-mail
+        </label><br><br>
+
+        <button type="submit">Salvar</button>
+    </form>
+</body>
+</html>

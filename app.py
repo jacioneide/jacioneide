@@ -1,98 +1,53 @@
-from flask import Flask, render_template
-from flask import request, session, redirect, url_for
-from flask import flash
-
-from flask_login import LoginManager, UserMixin, logout_user
-from flask_login import login_required, login_user
-
-login_manager = LoginManager()
+from flask import Flask, render_template, request, redirect, make_response
 
 app = Flask(__name__)
 
-login_manager.__init__(app)
+filmes_por_genero = {
+    "acao": ["Missão Impossível", "John Wick", "Mad Max"],
+    "comedia": ["Se Beber, Não Case", "As Branquelas", "Superbad"],
+    "drama": ["Clube da Luta", "Forrest Gump", "A Procura da Felicidade"],
+    "ficcao": ["Matrix", "Interestelar", "Blade Runner"],
+    "terror": ["Invocação do Mal", "O Iluminado", "Hereditário"]
+}
 
-app.secret_key = 'chave_secreta'
-
-class User(UserMixin):
-    def __init__(self, nome, senha) -> None:
-        self.nome = nome
-        self.senha = senha
-
-    @classmethod
-    def get(cls, user_id):
-        lista_usuarios = session['usuarios']
-        if user_id in lista_usuarios:
-            info = lista_usuarios[user_id]
-            user = User(nome=info['nome'], senha=info['senha'])
-            user.id = user_id
-            return user
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.get(user_id)
-
-@app.route('/')
+@app.route("/")
 def index():
+    return render_template("index.html")
 
-    if 'usuarios' not in session:
-        session['usuarios'] = {}
+@app.route("/cadastro", methods=["GET", "POST"])
+def cadastro():
+    if request.method == "POST":
+        nome = request.form["nome"]
+        genero = request.form["genero"]
+        notificacoes = "sim" if "notificacoes" in request.form else "nao"
 
-    return render_template('index.html')
+        resp = make_response(redirect("/preferencias"))
+        resp.set_cookie("nome", nome, max_age=7*24*60*60)
+        resp.set_cookie("genero", genero, max_age=7*24*60*60)
+        resp.set_cookie("notificacoes", notificacoes, max_age=7*24*60*60)
+        return resp
+    return render_template("cadastro.html")
 
-@app.route('/login', methods=['POST', 'GET'])
-def login():
-    if request.method == 'POST':
-        nome = request.form['name']
-        senha= request.form['password']
-        
-        lista_usuarios = session['usuarios']
+@app.route("/preferencias")
+def preferencias():
+    nome = request.cookies.get("nome")
+    genero = request.cookies.get("genero")
+    notificacoes = request.cookies.get("notificacoes")
 
-        print(lista_usuarios)
+    if not nome or not genero or not notificacoes:
+        return render_template("preferencias.html", preferencias=None)
+    
+    return render_template("preferencias.html", preferencias={
+        "nome": nome,
+        "genero": genero,
+        "notificacoes": notificacoes
+    })
 
-        for id, dados in lista_usuarios.items():
-            if nome == dados['nome'] and senha == dados['senha']:
-                user = User(nome=nome, senha=dados['senha'])
-                user.id = id
-                login_user(user)
-                return redirect(url_for('dash'))
+@app.route("/recomendar")
+def recomendar():
+    genero = request.args.get("genero", "").lower()
+    filmes = filmes_por_genero.get(genero, [])
+    return render_template("recomendar.html", genero=genero, filmes=filmes)
 
-        flash('Dados incorretos', category='error')
-        return redirect(url_for('login'))
-
-    return render_template('login.html')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-
-    if request.method == 'POST':
-        nome = request.form['name']
-        senha= request.form['password']
-
-        id = len(session['usuarios']) + 1
-        for key, info in session['usuarios'].items():
-            if nome == info['nome']:
-                flash('Você já possui cadastro', category='error')
-                return redirect(url_for('register'))
-        
-        user = User(nome=nome, senha=senha)
-        user.id = str(id)
-        lista_usuario = session['usuarios']
-        lista_usuario[user.id] = {'nome':nome, 'senha': senha}
-        session['usuarios'] = lista_usuario        
-        login_user(user)
-
-        return redirect(url_for('dash'))
-
-    return render_template('register.html')
-
-
-@app.route('/dashboard')
-@login_required
-def dash():
-    return render_template('dash.html')
-
-@app.route('/logout', methods=['POST'])
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
+if __name__ == "__main__":
+    app.run(debug=True)
